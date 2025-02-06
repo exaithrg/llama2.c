@@ -1,3 +1,6 @@
 models/
 run
 runq
+
+.github/
+.vscode/

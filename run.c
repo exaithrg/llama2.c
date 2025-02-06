@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
@@ -236,8 +237,11 @@ float* forward(Transformer* transformer, int token, int pos) {
     RunState* s = &transformer->state;
     float *x = s->x;
     int dim = p->dim;
+
+    // Multi-Query Attention (MQA)
     int kv_dim = (p->dim * p->n_kv_heads) / p->n_heads;
     int kv_mul = p->n_heads / p->n_kv_heads; // integer multiplier of the kv sharing in multiquery
+
     int hidden_dim =  p->hidden_dim;
     int head_size = dim / p->n_heads;
 
@@ -733,6 +737,7 @@ void generate(Transformer *transformer, Tokenizer *tokenizer, Sampler *sampler, 
     // encode the (string) prompt into tokens sequence
     int num_prompt_tokens = 0;
     int* prompt_tokens = (int*)malloc((strlen(prompt)+3) * sizeof(int)); // +3 for '\0', ?BOS, ?EOS
+    // b run.c:736
     encode(tokenizer, prompt, 1, 0, prompt_tokens, &num_prompt_tokens);
     if (num_prompt_tokens < 1) {
         fprintf(stderr, "something is wrong, expected at least 1 prompt token\n");
@@ -744,6 +749,8 @@ void generate(Transformer *transformer, Tokenizer *tokenizer, Sampler *sampler, 
     int next;        // will store the next token in the sequence
     int token = prompt_tokens[0]; // kick off with the first token in the prompt
     int pos = 0;     // position in the sequence
+
+    // exaithrg: seems no prefill stage. what about KV Cache?
     while (pos < steps) {
 
         // forward the transformer to get logits for the next token

@@ -233,17 +233,31 @@ void matmul(float* xout, float* x, float* w, int n, int d) {
 float* forward(Transformer* transformer, int token, int pos) {
 
     // a few convenience variables
+    // {dim = 288, hidden_dim = 768, n_layers = 6, n_heads = 6, n_kv_heads = 6, vocab_size = 32000, seq_len = 256}
     Config* p = &transformer->config;
     TransformerWeights* w = &transformer->weights;
     RunState* s = &transformer->state;
+
+    // float *x; // activation at current time stamp (dim,)
     float *x = s->x;
-    int dim = p->dim;
+
+    int dim = p->dim; // 288
 
     // Grouped-Query Attention (GQA) support
+    // kv_dim = (288 * 6) / 6 = 288 = dim, so no GQA used in stories15M.bin
+    // However, in LLAMA3.2-1B, we have
+    // kv_dim = (2048 * 8) / 32 = 512 = dim / 4, which means 4 Query share 1 Key/Value
     int kv_dim = (p->dim * p->n_kv_heads) / p->n_heads;
+
+    // in stroies15M.bin: kv_mul = 6 / 6 = 1
+    // in LLAMA3.2-1B: kv_mul = 32 / 8 = 4
     int kv_mul = p->n_heads / p->n_kv_heads; // integer multiplier of the kv sharing in multiquery
 
+    // stroies15M.bin: 768; LLAMA3.2-1B: 8192
     int hidden_dim =  p->hidden_dim;
+
+    // stroies15M.bin: 288 / 6 = 48
+    // LLAMA3.2-1B: 2048 / 32 = 64
     int head_size = dim / p->n_heads;
 
     // copy the token embedding into x

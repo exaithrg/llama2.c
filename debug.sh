@@ -1,5 +1,7 @@
 #!/bin/bash
 
+make rundebug
+
 EXECUTABLE="./run"
 
 ARGS=(

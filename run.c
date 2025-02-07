@@ -238,7 +238,7 @@ float* forward(Transformer* transformer, int token, int pos) {
     float *x = s->x;
     int dim = p->dim;
 
-    // Multi-Query Attention (MQA)
+    // Grouped-Query Attention (GQA) support
     int kv_dim = (p->dim * p->n_kv_heads) / p->n_heads;
     int kv_mul = p->n_heads / p->n_kv_heads; // integer multiplier of the kv sharing in multiquery
 
